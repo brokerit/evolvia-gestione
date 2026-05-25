@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<!-- saved from url=(0056)file:///C:/Users/ricca/Downloads/evolvia-gestione_3.html -->
+<html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evolvia — Gestione Richieste</title>
+<link href="./Evolvia — Gestione Richieste_files/css2" rel="stylesheet">
+<style>
+  :root {
+    --teal: #246e77; --teal-dark: #1a5059; --teal-light: #2d8593; --teal-pale: #e8f4f6;
+    --orange: #f46f22; --orange-dark: #d45e15;
+    --bg: #f0f4f5; --surface: #ffffff; --surface2: #f7fafa; --border: #d4e4e6;
+    --text: #1a2e30; --text-muted: #6b8a8d; --text-light: #9ab0b3;
+    --stato-nuova: #246e77; --stato-lavorazione: #e8a000; --stato-attesa-cliente: #f46f22;
+    --stato-attesa-fornitore: #7c3aed; --stato-completata: #16a34a; --stato-annullata: #dc2626;
+    --radius: 10px; --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(36,110,119,0.08), 0 4px 16px rgba(36,110,119,0.06);
+    --shadow-lg: 0 8px 32px rgba(36,110,119,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+
+  /* LOGIN */
+  #login-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--teal-dark),var(--teal),var(--teal-light)); }
+  .login-card { background:var(--surface); border-radius:20px; padding:48px 40px; width:380px; box-shadow:var(--shadow-lg); text-align:center; }
+  .login-logo { display:inline-flex; align-items:center; gap:10px; margin-bottom:32px; }
+  .login-logo-icon { width:44px; height:44px; background:var(--teal); border-radius:12px; display:flex; align-items:center; justify-content:center; }
+  .login-logo-icon svg { width:24px; height:24px; fill:white; }
+  .login-logo-text { font-size:22px; font-weight:700; color:var(--teal); letter-spacing:-0.5px; }
+  .login-title { font-size:17px; font-weight:500; color:var(--text-muted); margin-bottom:28px; }
+  .login-select { width:100%; padding:14px 16px; border:2px solid var(--border); border-radius:var(--radius); font-family:'DM Sans',sans-serif; font-size:15px; color:var(--text); background:var(--surface2); appearance:none; cursor:pointer; margin-bottom:20px; transition:border-color .2s; }
+  .login-select:focus { outline:none; border-color:var(--teal); }
+  .btn-login { width:100%; padding:14px; background:var(--teal); color:white; border:none; border-radius:var(--radius); font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition:background .2s; }
+  .btn-login:hover { background:var(--teal-dark); }
+
+  /* APP */
+  #app { display:none; flex-direction:column; min-height:100vh; }
+  .topbar { background:var(--teal); color:white; padding:0 24px; height:56px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 2px 8px rgba(0,0,0,.15); }
+  .topbar-left { display:flex; align-items:center; gap:12px; }
+  .topbar-logo { font-size:18px; font-weight:700; letter-spacing:-.3px; display:flex; align-items:center; gap:8px; }
+  .topbar-logo-dot { width:8px; height:8px; background:var(--orange); border-radius:50%; }
+  .topbar-subtitle { font-size:12px; opacity:.7; border-left:1px solid rgba(255,255,255,.3); padding-left:12px; }
+  .topbar-right { display:flex; align-items:center; gap:12px; }
+  .topbar-user { display:flex; align-items:center; gap:8px; font-size:13px; opacity:.9; }
+  .topbar-avatar { width:30px; height:30px; background:rgba(255,255,255,.2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:13px; }
+  .btn-logout { background:rgba(255,255,255,.15); border:none; color:white; padding:6px 14px; border-radius:20px; font-family:'DM Sans',sans-serif; font-size:12px; cursor:pointer; }
+  .btn-logout:hover { background:rgba(255,255,255,.25); }
+
+  /* NOTIFICHE BADGE */
+  .notifiche-bar { background:var(--surface); border-bottom:1.5px solid var(--border); padding:10px 24px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .notif-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:600; cursor:default; }
+  .notif-scadute { background:#fef2f2; color:#dc2626; border:1.5px solid #fca5a5; }
+  .notif-attesa { background:#fef0e7; color:#f46f22; border:1.5px solid #fdba74; }
+  .notif-nuove { background:#e8f4f6; color:var(--teal); border:1.5px solid #a5d4d9; }
+
+  /* MAIN */
+  .main { flex:1; padding:24px; max-width:1500px; margin:0 auto; width:100%; }
+  .toolbar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+  .btn-new { background:var(--orange); color:white; border:none; padding:10px 18px; border-radius:var(--radius); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  .btn-new:hover { background:var(--orange-dark); }
+  .btn-storico { background:var(--surface); color:var(--text-muted); border:1.5px solid var(--border); padding:10px 14px; border-radius:var(--radius); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .btn-storico:hover { border-color:var(--teal); color:var(--teal); }
+  .filter-group { display:flex; gap:8px; flex-wrap:wrap; flex:1; }
+  .filter-select, .search-input, .filter-date { padding:9px 12px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:13px; color:var(--text); background:var(--surface); cursor:pointer; transition:border-color .2s; }
+  .filter-select:focus, .search-input:focus, .filter-date:focus { outline:none; border-color:var(--teal); }
+  .search-input { min-width:220px; flex:1; }
+  .filter-date { width:140px; }
+  .btn-reset { padding:9px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); font-family:'DM Sans',sans-serif; font-size:13px; cursor:pointer; color:var(--text-muted); }
+  .btn-reset:hover { border-color:var(--teal); color:var(--teal); }
+  .results-bar { font-size:12px; color:var(--text-muted); margin-bottom:12px; }
+
+  /* TABLE */
+  .table-wrap { background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+  table { width:100%; border-collapse:collapse; }
+  thead tr { background:var(--surface2); border-bottom:1.5px solid var(--border); }
+  th { padding:11px 14px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); white-space:nowrap; }
+  td { padding:12px 14px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:middle; }
+  tbody tr:last-child td { border-bottom:none; }
+  tbody tr { cursor:pointer; transition:background .15s; }
+  tbody tr:hover { background:var(--teal-pale); }
+  tbody tr.scaduta-row { background:#fff5f5; }
+  tbody tr.scaduta-row:hover { background:#fee2e2; }
+  .id-cell { font-family:'DM Mono',monospace; font-size:12px; color:var(--text-muted); font-weight:500; }
+  .cliente-cell { font-weight:600; }
+  .tipo-cat { font-size:10px; color:var(--text-light); display:block; margin-bottom:2px; }
+  .badge-stato { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .badge-dot { width:6px; height:6px; border-radius:50%; }
+  .stato-nuova { background:#e8f4f6; color:var(--stato-nuova); }
+  .stato-lavorazione { background:#fef9e7; color:var(--stato-lavorazione); }
+  .stato-attesa-cliente { background:#fef0e7; color:var(--stato-attesa-cliente); }
+  .stato-attesa-fornitore { background:#f3f0ff; color:var(--stato-attesa-fornitore); }
+  .stato-completata { background:#f0fdf4; color:var(--stato-completata); }
+  .stato-annullata { background:#fef2f2; color:var(--stato-annullata); }
+  .dot-nuova { background:var(--stato-nuova); }
+  .dot-lavorazione { background:var(--stato-lavorazione); }
+  .dot-attesa-cliente { background:var(--stato-attesa-cliente); }
+  .dot-attesa-fornitore { background:var(--stato-attesa-fornitore); }
+  .dot-completata { background:var(--stato-completata); }
+  .dot-annullata { background:var(--stato-annullata); }
+  .scadenza-badge { font-size:11px; font-weight:600; padding:2px 8px; border-radius:20px; white-space:nowrap; }
+  .scadenza-ok { background:#f0fdf4; color:#16a34a; }
+  .scadenza-oggi { background:#fef9e7; color:#e8a000; }
+  .scadenza-scaduta { background:#fef2f2; color:#dc2626; }
+  .empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); }
+  .empty-state-icon { font-size:40px; margin-bottom:12px; }
+  .empty-state-title { font-size:16px; font-weight:600; margin-bottom:6px; }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:200; align-items:center; justify-content:center; padding:20px; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--surface); border-radius:16px; width:100%; max-width:640px; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow-lg); animation:modalIn .2s ease; }
+  @keyframes modalIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .modal-header { padding:22px 26px 14px; border-bottom:1.5px solid var(--border); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:var(--surface); z-index:1; }
+  .modal-title { font-size:17px; font-weight:700; color:var(--teal); }
+  .btn-close { background:var(--surface2); border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:18px; color:var(--text-muted); display:flex; align-items:center; justify-content:center; }
+  .btn-close:hover { background:var(--border); }
+  .modal-body { padding:22px 26px; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .form-full { grid-column:1/-1; }
+  .form-group { display:flex; flex-direction:column; gap:5px; }
+  .form-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.4px; }
+  .form-input, .form-select, .form-textarea { padding:10px 12px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text); background:var(--surface2); transition:border-color .2s; }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { outline:none; border-color:var(--teal); background:white; }
+  .form-textarea { resize:vertical; min-height:80px; }
+  .modal-footer { padding:14px 26px 22px; display:flex; gap:10px; justify-content:flex-end; }
+  .btn-cancel { padding:10px 18px; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); font-family:'DM Sans',sans-serif; font-size:14px; cursor:pointer; color:var(--text-muted); }
+  .btn-save { padding:10px 22px; background:var(--teal); color:white; border:none; border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; }
+  .btn-save:hover { background:var(--teal-dark); }
+
+  /* DETAIL */
+  .detail-modal { max-width:720px; }
+  .detail-header-info { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .detail-id { font-family:'DM Mono',monospace; font-size:12px; color:var(--text-muted); background:var(--surface2); padding:3px 10px; border-radius:20px; }
+  .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px; }
+  .detail-field { display:flex; flex-direction:column; gap:3px; }
+  .detail-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.4px; color:var(--text-light); }
+  .detail-value { font-size:13px; color:var(--text); font-weight:500; }
+  .edit-row { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+  .edit-row .form-select { flex:1; min-width:140px; }
+  .btn-edit-save { padding:9px 16px; background:var(--teal); color:white; border:none; border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .btn-edit-save:hover { background:var(--teal-dark); }
+  .btn-elimina { padding:9px 14px; background:#fef2f2; color:#dc2626; border:1.5px solid #fca5a5; border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .btn-elimina:hover { background:#dc2626; color:white; }
+  .btn-stampa { padding:9px 14px; background:#f0fdf4; color:#16a34a; border:1.5px solid #86efac; border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .btn-stampa:hover { background:#16a34a; color:white; }
+
+  /* NOTE */
+  .note-section { border-top:1.5px solid var(--border); padding-top:18px; margin-bottom:18px; }
+  .note-add-row { display:flex; gap:10px; align-items:flex-start; }
+  .note-item { background:var(--surface2); border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:8px; }
+  .note-item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
+  .note-item-meta { font-size:11px; color:var(--text-light); font-family:'DM Mono',monospace; }
+  .note-item-author { font-size:11px; font-weight:600; color:var(--teal); }
+  .note-item-text { font-size:13px; color:var(--text); line-height:1.5; white-space:pre-wrap; }
+
+  /* LOG */
+  .log-section { border-top:1.5px solid var(--border); padding-top:18px; }
+  .log-title { font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:.5px; }
+  .log-entry { display:flex; gap:10px; margin-bottom:8px; font-size:12px; }
+  .log-time { font-family:'DM Mono',monospace; color:var(--text-light); white-space:nowrap; font-size:11px; padding-top:2px; }
+  .log-text { color:var(--text); line-height:1.5; }
+  .log-text strong { color:var(--teal); }
+  .log-empty { color:var(--text-light); font-size:12px; font-style:italic; }
+
+  /* STORICO ELIMINATI */
+  .storico-item { background:#fef2f2; border:1.5px solid #fca5a5; border-radius:var(--radius-sm); padding:14px 16px; margin-bottom:10px; }
+  .storico-item-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; flex-wrap:wrap; gap:6px; }
+  .storico-item-title { font-weight:700; font-size:14px; }
+  .storico-item-meta { font-size:11px; color:var(--text-light); font-family:'DM Mono',monospace; }
+  .storico-item-body { font-size:12px; color:var(--text-muted); display:flex; gap:16px; flex-wrap:wrap; }
+  .storico-item-motivo { font-size:12px; color:#dc2626; font-weight:600; margin-top:6px; }
+
+  /* PRINT */
+  @media print {
+    #login-screen, .topbar, .notifiche-bar, .toolbar, .results-bar, .table-wrap, .modal-overlay:not(#print-modal) { display:none !important; }
+    #print-modal { display:block !important; position:static !important; background:none !important; }
+    #print-modal .modal { box-shadow:none !important; max-height:none !important; }
+    #print-modal .modal-header, #print-modal .edit-row, #print-modal .note-add-row, #print-modal .btn-stampa, #print-modal .btn-elimina, #print-modal .btn-edit-save, #print-modal .btn-close { display:none !important; }
+    .print-header { display:block !important; }
+  }
+  .print-header { display:none; text-align:center; margin-bottom:20px; }
+
+  optgroup { font-weight:600; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon"><svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
+      <span class="login-logo-text">Evolvia</span>
+    </div>
+    <p class="login-title">Seleziona il tuo nome per accedere</p>
+    <select class="login-select" id="login-select">
+      <option value="">— Scegli operatore —</option>
+      <option>Elisa</option><option>Fabio</option><option>Mattia</option>
+      <option>Riccardo</option><option>Roberto</option><option>Sergio</option>
+    </select>
+    <button class="btn-login" onclick="doLogin()">Accedi</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo"><div class="topbar-logo-dot"></div>Evolvia</div>
+      <span class="topbar-subtitle">Gestione Richieste Clienti</span>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-user">
+        <div class="topbar-avatar" id="avatar-initials">R</div>
+        <span id="user-name-display">Riccardo</span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Esci</button>
+    </div>
+  </div>
+
+  <!-- NOTIFICHE -->
+  <div class="notifiche-bar" id="notifiche-bar"></div>
+
+  <div class="main">
+    <div class="toolbar">
+      <button class="btn-new" onclick="openNewModal()"><span style="font-size:18px;line-height:1">+</span> Nuova Richiesta</button>
+      <button class="btn-storico" onclick="openStorico()">🗂 Eliminate</button>
+      <div class="filter-group">
+        <input class="search-input" id="search-input" placeholder="🔍 Cerca per cliente, CF, POD/PDR..." oninput="renderTable()">
+        <select class="filter-select" id="f-stato" onchange="renderTable()">
+          <option value="">Tutti gli stati</option>
+          <option>Nuova</option><option>In Lavorazione</option><option>In Attesa Cliente</option>
+          <option>In Attesa Fornitore/Distributore</option><option>Completata</option><option>Annullata</option>
+        </select>
+        <select class="filter-select" id="f-operatore" onchange="renderTable()">
+          <option value="">Tutti gli operatori</option>
+          <option>Elisa</option><option>Fabio</option><option>Mattia</option>
+          <option>Riccardo</option><option>Roberto</option><option>Sergio</option>
+        </select>
+        <select class="filter-select" id="f-tipo" onchange="renderTable()">
+          <option value="">Tutti i tipi</option>
+          <optgroup label="Pratiche Contrattuali">
+            <option>Nuova Attivazione</option><option>Voltura</option><option>Subentro</option>
+            <option>Switch</option><option>Switch con Voltura</option><option>Cessazione</option><option>Cambio Offerta</option>
+          </optgroup>
+          <optgroup label="Post Vendita">
+            <option>Aggiornamento Dati Anagrafici</option><option>Cambio IBAN/Domiciliazione</option>
+            <option>Stato Pratica</option><option>Variazione Potenza/Tensione</option>
+            <option>Variazione Indirizzo</option><option>Variazione Commerciale</option><option>Rateizzazione</option>
+          </optgroup>
+          <optgroup label="Problemi &amp; Reclami">
+            <option>Reclamo Fattura</option><option>Ricezione Fattura</option><option>Problema Fornitura</option>
+            <option>Disservizio Rete</option><option>Richiesta Rimborso</option>
+          </optgroup>
+          <optgroup label="Commerciale &amp; Info">
+            <option>Richiesta Preventivo</option><option>Informazioni Offerte</option><option>Richiesta Documenti</option>
+          </optgroup>
+        </select>
+        <select class="filter-select" id="f-fornitore" onchange="renderTable()">
+          <option value="">Tutti i fornitori</option>
+          <option>A2A</option><option>Acea</option><option>AGSM</option><option>Axpo Italia</option>
+          <option>Dolomiti</option><option>Duferco</option><option>Edison</option><option>E-ON</option>
+          <option>Enel</option><option>Engie</option><option>ENI Plenitude</option><option>Estra</option>
+          <option>Hera Comm</option><option>Illumia</option><option>IREN</option><option>Octopus</option>
+          <option>Optima</option><option>Pulsee</option><option>Sorgenia</option><option>Altro</option>
+        </select>
+        <input class="filter-date" type="date" id="f-data-da" onchange="renderTable()" title="Da data">
+        <input class="filter-date" type="date" id="f-data-a" onchange="renderTable()" title="A data">
+        <button class="btn-reset" onclick="resetFilters()">✕ Reset</button>
+      </div>
+    </div>
+    <div class="results-bar" id="results-bar"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Cliente</th><th>Telefono</th><th>Tipo</th><th>Fornitore</th>
+            <th>Operatore</th><th>Stato</th><th>Scadenza</th><th>Aperta il</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NUOVA RICHIESTA -->
+<div class="modal-overlay" id="new-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Nuova Richiesta</span>
+      <button class="btn-close" onclick="closeModal(&#39;new-modal&#39;)">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group form-full">
+          <label class="form-label">Nome Cliente *</label>
+          <input class="form-input" id="f-cliente" placeholder="Nome e cognome">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Codice Fiscale</label>
+          <input class="form-input" id="f-cf" placeholder="Es. RSSMRA80A01H501Z" style="text-transform:uppercase">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Telefono</label>
+          <input class="form-input" id="f-telefono" placeholder="Es. 3331234567" type="tel">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo Richiesta *</label>
+          <select class="form-select" id="f-tipoR">
+            <option value="">Seleziona...</option>
+            <optgroup label="🔄 Pratiche Contrattuali">
+              <option>Nuova Attivazione</option><option>Voltura</option><option>Subentro</option>
+              <option>Switch</option><option>Switch con Voltura</option><option>Cessazione</option><option>Cambio Offerta</option>
+            </optgroup>
+            <optgroup label="🔧 Post Vendita">
+              <option>Aggiornamento Dati Anagrafici</option><option>Cambio IBAN/Domiciliazione</option>
+              <option>Stato Pratica</option><option>Variazione Potenza/Tensione</option>
+              <option>Variazione Indirizzo</option><option>Variazione Commerciale</option><option>Rateizzazione</option>
+            </optgroup>
+            <optgroup label="⚠️ Problemi &amp; Reclami">
+              <option>Reclamo Fattura</option><option>Ricezione Fattura</option><option>Problema Fornitura</option>
+              <option>Disservizio Rete</option><option>Richiesta Rimborso</option>
+            </optgroup>
+            <optgroup label="💬 Commerciale &amp; Info">
+              <option>Richiesta Preventivo</option><option>Informazioni Offerte</option><option>Richiesta Documenti</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fornitore</label>
+          <select class="form-select" id="f-fornitoreR">
+            <option value="">Seleziona...</option>
+            <option>A2A</option><option>Acea</option><option>AGSM</option><option>Axpo Italia</option>
+            <option>Dolomiti</option><option>Duferco</option><option>Edison</option><option>E-ON</option>
+            <option>Enel</option><option>Engie</option><option>ENI Plenitude</option><option>Estra</option>
+            <option>Hera Comm</option><option>Illumia</option><option>IREN</option><option>Octopus</option>
+            <option>Optima</option><option>Pulsee</option><option>Sorgenia</option><option>Altro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Canale Arrivo</label>
+          <select class="form-select" id="f-canaleR">
+            <option value="">Seleziona...</option>
+            <option>📞 Telefono</option><option>💬 WhatsApp</option><option>📧 Email</option><option>🏢 Ufficio</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Operatore Assegnato</label>
+          <select class="form-select" id="f-operatoreR">
+            <option value="">Seleziona...</option>
+            <option>Elisa</option><option>Fabio</option><option>Mattia</option>
+            <option>Riccardo</option><option>Roberto</option><option>Sergio</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">POD / PDR</label>
+          <input class="form-input" id="f-pod" placeholder="Es. IT001E12345678">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Scadenza (facoltativa)</label>
+          <input class="form-input" id="f-scadenza" type="date">
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">Note iniziali</label>
+          <textarea class="form-textarea" id="f-note" placeholder="Dettagli della richiesta..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal(&#39;new-modal&#39;)">Annulla</button>
+      <button class="btn-save" onclick="saveNew()">Crea Richiesta</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DETTAGLIO / STAMPA -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal detail-modal">
+    <div class="modal-header">
+      <div class="detail-header-info">
+        <span class="modal-title" id="d-title">Dettaglio</span>
+        <span class="detail-id" id="d-id">#0001</span>
+        <span class="badge-stato" id="d-stato-badge"></span>
+      </div>
+      <button class="btn-close" onclick="closeModal(&#39;detail-modal&#39;)">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="print-header">
+        <h2 style="color:var(--teal);font-size:20px">Evolvia — Scheda Richiesta</h2>
+        <p style="font-size:12px;color:var(--text-muted)" id="print-date"></p>
+      </div>
+      <div class="edit-row">
+        <select class="form-select" id="d-stato-edit">
+          <option>Nuova</option><option>In Lavorazione</option>
+          <option>In Attesa Cliente</option><option>In Attesa Fornitore/Distributore</option>
+          <option>Completata</option><option>Annullata</option>
+        </select>
+        <select class="form-select" id="d-operatore-edit">
+          <option>Elisa</option><option>Fabio</option><option>Mattia</option>
+          <option>Riccardo</option><option>Roberto</option><option>Sergio</option>
+        </select>
+        <input class="form-input" id="d-scadenza-edit" type="date" title="Scadenza" style="width:150px">
+        <button class="btn-edit-save" onclick="saveDetail()">Salva</button>
+        <button class="btn-stampa" onclick="stampaScheda()">🖨 Stampa</button>
+        <button class="btn-elimina" onclick="openEliminaModal()">🗑 Elimina</button>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-field"><span class="detail-label">Cliente</span><span class="detail-value" id="d-cliente">—</span></div>
+        <div class="detail-field"><span class="detail-label">Codice Fiscale</span><span class="detail-value" id="d-cf" style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">—</span></div>
+        <div class="detail-field"><span class="detail-label">Telefono</span><span class="detail-value" id="d-telefono">—</span></div>
+        <div class="detail-field"><span class="detail-label">Tipo Richiesta</span><span class="detail-value" id="d-tipo">—</span></div>
+        <div class="detail-field"><span class="detail-label">Fornitore</span><span class="detail-value" id="d-fornitore">—</span></div>
+        <div class="detail-field"><span class="detail-label">POD / PDR</span><span class="detail-value" id="d-pod" style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">—</span></div>
+        <div class="detail-field"><span class="detail-label">Canale</span><span class="detail-value" id="d-canale">—</span></div>
+        <div class="detail-field"><span class="detail-label">Data Apertura</span><span class="detail-value" id="d-data">—</span></div>
+        <div class="detail-field"><span class="detail-label">Operatore</span><span class="detail-value" id="d-operatore">—</span></div>
+        <div class="detail-field"><span class="detail-label">Scadenza</span><span class="detail-value" id="d-scadenza">—</span></div>
+      </div>
+      <div class="note-section">
+        <div class="log-title">📝 Note</div>
+        <div id="d-note-list" style="margin-bottom:12px"></div>
+        <div class="note-add-row">
+          <textarea class="form-textarea" id="d-note-input" placeholder="Aggiungi una nota..." style="min-height:65px;flex:1"></textarea>
+          <button class="btn-edit-save" onclick="addNota()">➕ Aggiungi</button>
+        </div>
+      </div>
+      <div class="log-section">
+        <div class="log-title">📋 Storico Modifiche</div>
+        <div id="d-log"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ELIMINA -->
+<div class="modal-overlay" id="elimina-modal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <span class="modal-title" style="color:#dc2626">🗑 Elimina Richiesta</span>
+      <button class="btn-close" onclick="closeModal(&#39;elimina-modal&#39;)">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Seleziona la motivazione. La richiesta verrà archiviata nello storico eliminati.</p>
+      <div class="form-group">
+        <label class="form-label">Motivazione *</label>
+        <select class="form-select" id="elimina-motivazione">
+          <option value="">Seleziona motivazione...</option>
+          <optgroup label="Errori dati">
+            <option>Errato POD/PDR</option><option>Errato Codice Fiscale</option>
+            <option>Errato Intestatario</option><option>Dati Incompleti</option>
+          </optgroup>
+          <optgroup label="Duplicati">
+            <option>Doppia Richiesta</option><option>Pratica già in lavorazione</option>
+          </optgroup>
+          <optgroup label="Cliente">
+            <option>Richiesta annullata dal cliente</option><option>Cliente irraggiungibile</option>
+          </optgroup>
+          <optgroup label="Operative">
+            <option>Pratica non di competenza</option><option>Inserita per errore</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal(&#39;elimina-modal&#39;)">Annulla</button>
+      <button class="btn-save" style="background:#dc2626" onclick="confermaElimina()">Conferma eliminazione</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: STORICO ELIMINATI -->
+<div class="modal-overlay" id="storico-modal">
+  <div class="modal" style="max-width:800px">
+    <div class="modal-header">
+      <span class="modal-title">🗂 Storico Richieste Eliminate</span>
+      <button class="btn-close" onclick="closeModal(&#39;storico-modal&#39;)">×</button>
+    </div>
+    <div class="modal-body" id="storico-body"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ── FIREBASE CONFIG ──
+  const firebaseConfig = {
+    apiKey: "AIzaSyD7ld-Se9GIX12fgMq2iP71q5BqTkeDZOc",
+    authDomain: "evolvia-gestione-clienti.firebaseapp.com",
+    projectId: "evolvia-gestione-clienti",
+    storageBucket: "evolvia-gestione-clienti.firebasestorage.app",
+    messagingSenderId: "139247308509",
+    appId: "1:139247308509:web:aab7edcc1fe9dbce3cd534"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ── STATO APP ──
+  let currentUser = '';
+  let richieste = [];
+  let eliminate = [];
+  let currentDetailId = null;
+
+  const STATI_CLASS = { 'Nuova':'stato-nuova','In Lavorazione':'stato-lavorazione','In Attesa Cliente':'stato-attesa-cliente','In Attesa Fornitore/Distributore':'stato-attesa-fornitore','Completata':'stato-completata','Annullata':'stato-annullata' };
+  const STATI_DOT = { 'Nuova':'dot-nuova','In Lavorazione':'dot-lavorazione','In Attesa Cliente':'dot-attesa-cliente','In Attesa Fornitore/Distributore':'dot-attesa-fornitore','Completata':'dot-completata','Annullata':'dot-annullata' };
+  const TIPO_CAT = {
+    'Nuova Attivazione':'Pratiche Contrattuali','Voltura':'Pratiche Contrattuali','Subentro':'Pratiche Contrattuali','Switch':'Pratiche Contrattuali','Switch con Voltura':'Pratiche Contrattuali','Cessazione':'Pratiche Contrattuali','Cambio Offerta':'Pratiche Contrattuali',
+    'Aggiornamento Dati Anagrafici':'Post Vendita','Cambio IBAN/Domiciliazione':'Post Vendita','Stato Pratica':'Post Vendita','Variazione Potenza/Tensione':'Post Vendita','Variazione Indirizzo':'Post Vendita','Variazione Commerciale':'Post Vendita','Rateizzazione':'Post Vendita',
+    'Reclamo Fattura':'Problemi & Reclami','Ricezione Fattura':'Problemi & Reclami','Problema Fornitura':'Problemi & Reclami','Disservizio Rete':'Problemi & Reclami','Richiesta Rimborso':'Problemi & Reclami',
+    'Richiesta Preventivo':'Commerciale & Info','Informazioni Offerte':'Commerciale & Info','Richiesta Documenti':'Commerciale & Info'
+  };
+
+  // ── FIREBASE SAVE/LOAD ──
+  async function saveRichiesta(r) {
+    await setDoc(doc(db, 'richieste', r.id), r);
+  }
+
+  async function deleteRichiesta(id) {
+    await deleteDoc(doc(db, 'richieste', id));
+  }
+
+  async function saveEliminata(r) {
+    await setDoc(doc(db, 'eliminate', r.id), r);
+  }
+
+  // Ascolta in tempo reale le richieste
+  function startListeners() {
+    onSnapshot(collection(db, 'richieste'), snap => {
+      richieste = snap.docs.map(d => d.data());
+      renderTable();
+      aggiornaNotifiche();
+    });
+    onSnapshot(collection(db, 'eliminate'), snap => {
+      eliminate = snap.docs.map(d => d.data());
+    });
+  }
+
+  function nextId() {
+    const allIds = [...richieste, ...eliminate].map(r => parseInt((r.id||'#0').replace('#','')) || 0);
+    const max = allIds.length ? Math.max(...allIds) : 0;
+    return '#' + String(max + 1).padStart(4, '0');
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('it-IT') + ' ' + d.toLocaleTimeString('it-IT', {hour:'2-digit',minute:'2-digit'});
+  }
+
+  function formatDateOnly(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleDateString('it-IT');
+  }
+
+  function scadenzaInfo(scadenza) {
+    if (!scadenza) return null;
+    const oggi = new Date(); oggi.setHours(0,0,0,0);
+    const sc = new Date(scadenza); sc.setHours(0,0,0,0);
+    const diff = Math.round((sc - oggi) / 86400000);
+    if (diff < 0) return { label: `Scaduta ${Math.abs(diff)}g fa`, cls: 'scadenza-scaduta', scaduta: true };
+    if (diff === 0) return { label: 'Scade oggi', cls: 'scadenza-oggi', scaduta: false };
+    return { label: `Scade in ${diff}g`, cls: 'scadenza-ok', scaduta: false };
+  }
+
+  function aggiornaNotifiche() {
+    const bar = document.getElementById('notifiche-bar');
+    const oggi = new Date(); oggi.setHours(0,0,0,0);
+    const attive = richieste.filter(r => r.stato !== 'Completata' && r.stato !== 'Annullata');
+    const scadute = attive.filter(r => r.scadenza && new Date(r.scadenza) < oggi).length;
+    const inAttesa = richieste.filter(r => r.stato === 'In Attesa Cliente' || r.stato === 'In Attesa Fornitore/Distributore').length;
+    const nuove = richieste.filter(r => r.stato === 'Nuova').length;
+    let html = '';
+    if (scadute > 0) html += `<span class="notif-badge notif-scadute">⚠️ ${scadute} scadut${scadute===1?'a':'e'}</span>`;
+    if (inAttesa > 0) html += `<span class="notif-badge notif-attesa">⏳ ${inAttesa} in attesa</span>`;
+    if (nuove > 0) html += `<span class="notif-badge notif-nuove">🔵 ${nuove} nuov${nuove===1?'a':'e'}</span>`;
+    if (!html) html = '<span style="font-size:12px;color:var(--text-light)">✅ Nessuna notifica</span>';
+    bar.innerHTML = html;
+  }
+
+  // ── LOGIN ──
+  window.doLogin = function() {
+    const sel = document.getElementById('login-select').value;
+    if (!sel) { alert('Seleziona il tuo nome'); return; }
+    currentUser = sel;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('user-name-display').textContent = sel;
+    document.getElementById('avatar-initials').textContent = sel[0];
+    startListeners();
+  }
+
+  window.doLogout = function() {
+    currentUser = '';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-select').value = '';
+  }
+
+  // ── TABLE ──
+  function getFiltered() {
+    const search = document.getElementById('search-input').value.toLowerCase();
+    const fStato = document.getElementById('f-stato').value;
+    const fOp = document.getElementById('f-operatore').value;
+    const fTipo = document.getElementById('f-tipo').value;
+    const fFor = document.getElementById('f-fornitore').value;
+    const fDa = document.getElementById('f-data-da').value;
+    const fA = document.getElementById('f-data-a').value;
+    return richieste.filter(r => {
+      const matchSearch = !search || r.cliente.toLowerCase().includes(search) || (r.cf||'').toLowerCase().includes(search) || (r.pod||'').toLowerCase().includes(search) || (r.telefono||'').includes(search);
+      const matchStato = !fStato || r.stato === fStato;
+      const matchOp = !fOp || r.operatore === fOp;
+      const matchTipo = !fTipo || r.tipo === fTipo;
+      const matchFor = !fFor || r.fornitore === fFor;
+      const dataR = r.dataApertura ? r.dataApertura.slice(0,10) : '';
+      const matchDa = !fDa || dataR >= fDa;
+      const matchA = !fA || dataR <= fA;
+      return matchSearch && matchStato && matchOp && matchTipo && matchFor && matchDa && matchA;
+    }).sort((a,b) => new Date(b.dataApertura) - new Date(a.dataApertura));
+  }
+
+  function renderTable() {
+    const filtered = getFiltered();
+    const tbody = document.getElementById('table-body');
+    document.getElementById('results-bar').textContent = filtered.length === richieste.length
+      ? `${richieste.length} richieste totali`
+      : `${filtered.length} di ${richieste.length} richieste`;
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-title">Nessuna richiesta trovata</div></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = filtered.map(r => {
+      const sc = scadenzaInfo(r.scadenza);
+      const scBadge = sc ? `<span class="scadenza-badge ${sc.cls}">${sc.label}</span>` : '—';
+      const rowClass = sc && sc.scaduta ? 'scaduta-row' : '';
+      return `<tr class="${rowClass}" onclick="openDetail('${r.id}')">
+        <td class="id-cell">${r.id}</td>
+        <td class="cliente-cell">${r.cliente}</td>
+        <td style="color:var(--text-muted)">${r.telefono||'—'}</td>
+        <td><span class="tipo-cat">${TIPO_CAT[r.tipo]||''}</span>${r.tipo||'—'}</td>
+        <td>${r.fornitore||'—'}</td>
+        <td>${r.operatore||'—'}</td>
+        <td><span class="badge-stato ${STATI_CLASS[r.stato]||''}"><span class="badge-dot ${STATI_DOT[r.stato]||''}"></span>${r.stato}</span></td>
+        <td>${scBadge}</td>
+        <td style="color:var(--text-muted);font-size:12px">${formatDate(r.dataApertura)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  window.renderTable = renderTable;
+
+  window.resetFilters = function() {
+    ['search-input','f-data-da','f-data-a'].forEach(id => document.getElementById(id).value = '');
+    ['f-stato','f-operatore','f-tipo','f-fornitore'].forEach(id => document.getElementById(id).value = '');
+    renderTable();
+  }
+
+  // ── MODALI ──
+  window.openModal = function(id) { document.getElementById(id).classList.add('open'); }
+  window.closeModal = function(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+  });
+
+  // ── NUOVA ──
+  window.openNewModal = function() {
+    ['f-cliente','f-cf','f-telefono','f-pod','f-note'].forEach(id => document.getElementById(id).value = '');
+    ['f-tipoR','f-fornitoreR','f-canaleR'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-operatoreR').value = currentUser;
+    document.getElementById('f-scadenza').value = '';
+    openModal('new-modal');
+  }
+
+  window.saveNew = async function() {
+    const cliente = document.getElementById('f-cliente').value.trim();
+    const tipo = document.getElementById('f-tipoR').value;
+    if (!cliente) { alert('Inserisci il nome del cliente'); return; }
+    if (!tipo) { alert('Seleziona il tipo di richiesta'); return; }
+    const r = {
+      id: nextId(), cliente,
+      cf: document.getElementById('f-cf').value.trim().toUpperCase(),
+      telefono: document.getElementById('f-telefono').value.trim(),
+      tipo,
+      fornitore: document.getElementById('f-fornitoreR').value,
+      canale: document.getElementById('f-canaleR').value,
+      operatore: document.getElementById('f-operatoreR').value,
+      stato: 'Nuova',
+      dataApertura: new Date().toISOString(),
+      scadenza: document.getElementById('f-scadenza').value || '',
+      note: [],
+      log: [{ ts: new Date().toISOString(), operatore: currentUser, testo: `Richiesta creata — Tipo: ${tipo}` }]
+    };
+    const notaIniziale = document.getElementById('f-note').value.trim();
+    if (notaIniziale) r.note.push({ ts: new Date().toISOString(), operatore: currentUser, testo: notaIniziale });
+    await saveRichiesta(r);
+    closeModal('new-modal');
+  }
+
+  // ── DETTAGLIO ──
+  window.openDetail = function(id) {
+    const r = richieste.find(x => x.id === id);
+    if (!r) return;
+    currentDetailId = id;
+    document.getElementById('d-title').textContent = r.cliente;
+    document.getElementById('d-id').textContent = r.id;
+    document.getElementById('d-cliente').textContent = r.cliente;
+    document.getElementById('d-cf').textContent = r.cf || '—';
+    document.getElementById('d-telefono').textContent = r.telefono || '—';
+    document.getElementById('d-tipo').textContent = r.tipo || '—';
+    document.getElementById('d-fornitore').textContent = r.fornitore || '—';
+    document.getElementById('d-pod').textContent = r.pod || '—';
+    document.getElementById('d-canale').textContent = r.canale || '—';
+    document.getElementById('d-data').textContent = formatDate(r.dataApertura);
+    document.getElementById('d-operatore').textContent = r.operatore || '—';
+    const sc = scadenzaInfo(r.scadenza);
+    document.getElementById('d-scadenza').innerHTML = r.scadenza
+      ? `${formatDateOnly(r.scadenza)} ${sc ? `<span class="scadenza-badge ${sc.cls}">${sc.label}</span>` : ''}` : '—';
+    const badge = document.getElementById('d-stato-badge');
+    badge.className = 'badge-stato ' + (STATI_CLASS[r.stato]||'');
+    badge.innerHTML = `<span class="badge-dot ${STATI_DOT[r.stato]||''}"></span>${r.stato}`;
+    document.getElementById('d-stato-edit').value = r.stato;
+    document.getElementById('d-operatore-edit').value = r.operatore || currentUser;
+    document.getElementById('d-scadenza-edit').value = r.scadenza || '';
+    document.getElementById('d-note-input').value = '';
+    renderNoteList(r);
+    const logEl = document.getElementById('d-log');
+    if (!r.log || r.log.length === 0) {
+      logEl.innerHTML = '<div class="log-empty">Nessuna modifica registrata.</div>';
+    } else {
+      logEl.innerHTML = [...r.log].reverse().map(l =>
+        `<div class="log-entry"><span class="log-time">${formatDate(l.ts)}</span><span class="log-text"><strong>${l.operatore}</strong> — ${l.testo}</span></div>`
+      ).join('');
+    }
+    openModal('detail-modal');
+  }
+
+  window.saveDetail = async function() {
+    const r = richieste.find(x => x.id === currentDetailId);
+    if (!r) return;
+    const nuovoStato = document.getElementById('d-stato-edit').value;
+    const nuovoOp = document.getElementById('d-operatore-edit').value;
+    const nuovaScadenza = document.getElementById('d-scadenza-edit').value;
+    const changes = [];
+    if (nuovoStato !== r.stato) changes.push(`Stato: "${r.stato}" → "${nuovoStato}"`);
+    if (nuovoOp !== r.operatore) changes.push(`Operatore: "${r.operatore}" → "${nuovoOp}"`);
+    if (nuovaScadenza !== (r.scadenza||'')) changes.push(`Scadenza: "${r.scadenza ? formatDateOnly(r.scadenza) : 'nessuna'}" → "${nuovaScadenza ? formatDateOnly(nuovaScadenza) : 'rimossa'}"`);
+    if (changes.length > 0) {
+      r.stato = nuovoStato; r.operatore = nuovoOp; r.scadenza = nuovaScadenza;
+      r.log = r.log || [];
+      r.log.push({ ts: new Date().toISOString(), operatore: currentUser, testo: changes.join(' | ') });
+      await saveRichiesta(r);
+      closeModal('detail-modal');
+    } else { closeModal('detail-modal'); }
+  }
+
+  // ── NOTE ──
+  function renderNoteList(r) {
+    const el = document.getElementById('d-note-list');
+    const note = Array.isArray(r.note) ? r.note : (r.note ? [{ ts: r.dataApertura, operatore: r.operatore||'—', testo: r.note }] : []);
+    if (note.length === 0) {
+      el.innerHTML = '<div class="log-empty">Nessuna nota. Aggiungine una qui sotto.</div>';
+    } else {
+      el.innerHTML = [...note].reverse().map(n =>
+        `<div class="note-item"><div class="note-item-header"><span class="note-item-author">${n.operatore}</span><span class="note-item-meta">${formatDate(n.ts)}</span></div><div class="note-item-text">${n.testo}</div></div>`
+      ).join('');
+    }
+  }
+
+  window.addNota = async function() {
+    const r = richieste.find(x => x.id === currentDetailId);
+    if (!r) return;
+    const testo = document.getElementById('d-note-input').value.trim();
+    if (!testo) { alert('Scrivi una nota prima di aggiungerla'); return; }
+    if (!Array.isArray(r.note)) r.note = [];
+    r.note.push({ ts: new Date().toISOString(), operatore: currentUser, testo });
+    r.log = r.log || [];
+    r.log.push({ ts: new Date().toISOString(), operatore: currentUser, testo: 'Nota aggiunta' });
+    await saveRichiesta(r);
+    document.getElementById('d-note-input').value = '';
+    renderNoteList(r);
+    document.getElementById('d-log').innerHTML = [...r.log].reverse().map(l =>
+      `<div class="log-entry"><span class="log-time">${formatDate(l.ts)}</span><span class="log-text"><strong>${l.operatore}</strong> — ${l.testo}</span></div>`
+    ).join('');
+  }
+
+  // ── STAMPA ──
+  window.stampaScheda = function() {
+    const r = richieste.find(x => x.id === currentDetailId);
+    if (!r) return;
+    const sc = scadenzaInfo(r.scadenza);
+    const noteHtml = Array.isArray(r.note) && r.note.length > 0
+      ? [...r.note].reverse().map(n => `<div style="border:1px solid #ddd;border-radius:6px;padding:10px 14px;margin-bottom:8px;background:#f9f9f9"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><strong style="color:#246e77;font-size:12px">${n.operatore}</strong><span style="font-size:11px;color:#999;font-family:monospace">${formatDate(n.ts)}</span></div><div style="font-size:13px;white-space:pre-wrap">${n.testo}</div></div>`).join('')
+      : '<p style="color:#999;font-size:12px;font-style:italic">Nessuna nota</p>';
+    const logHtml = Array.isArray(r.log) && r.log.length > 0
+      ? [...r.log].reverse().map(l => `<div style="display:flex;gap:12px;margin-bottom:6px;font-size:12px"><span style="font-family:monospace;color:#aaa;white-space:nowrap">${formatDate(l.ts)}</span><span><strong style="color:#246e77">${l.operatore}</strong> — ${l.testo}</span></div>`).join('')
+      : '<p style="color:#999;font-size:12px;font-style:italic">Nessuna modifica</p>';
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Evolvia — ${r.cliente}</title>
+    <style>body{font-family:Arial,sans-serif;color:#1a2e30;margin:0;padding:30px;font-size:13px}h1{color:#246e77;font-size:20px;margin-bottom:4px}.sub{color:#6b8a8d;font-size:12px;margin-bottom:24px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;margin-bottom:20px}.field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#9ab0b3;margin-bottom:3px}.field span{font-size:13px;font-weight:500}.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b8a8d;border-top:1.5px solid #d4e4e6;padding-top:14px;margin:14px 0 10px}</style></head><body>
+    <h1>${r.cliente}</h1><div class="sub">${r.id} | Stampata il ${formatDate(new Date().toISOString())}</div>
+    <div class="grid">
+      <div class="field"><label>Codice Fiscale</label><span style="font-family:monospace">${r.cf||'—'}</span></div>
+      <div class="field"><label>Telefono</label><span>${r.telefono||'—'}</span></div>
+      <div class="field"><label>Tipo Richiesta</label><span>${r.tipo||'—'}</span></div>
+      <div class="field"><label>Fornitore</label><span>${r.fornitore||'—'}</span></div>
+      <div class="field"><label>POD / PDR</label><span style="font-family:monospace">${r.pod||'—'}</span></div>
+      <div class="field"><label>Canale</label><span>${r.canale||'—'}</span></div>
+      <div class="field"><label>Stato</label><span>${r.stato}</span></div>
+      <div class="field"><label>Operatore</label><span>${r.operatore||'—'}</span></div>
+      <div class="field"><label>Data Apertura</label><span>${formatDate(r.dataApertura)}</span></div>
+      <div class="field"><label>Scadenza</label><span>${r.scadenza ? formatDateOnly(r.scadenza)+(sc?' ('+sc.label+')':'') : '—'}</span></div>
+    </div>
+    <div class="section-title">📝 Note</div>${noteHtml}
+    <div class="section-title">📋 Storico Modifiche</div>${logHtml}
+    <script>window.onload=function(){window.print();}<\/script></body></html>`);
+    win.document.close();
+  }
+
+  // ── ELIMINA ──
+  window.openEliminaModal = function() {
+    document.getElementById('elimina-motivazione').value = '';
+    closeModal('detail-modal');
+    openModal('elimina-modal');
+  }
+
+  window.confermaElimina = async function() {
+    const motivazione = document.getElementById('elimina-motivazione').value;
+    if (!motivazione) { alert('Seleziona una motivazione'); return; }
+    const r = richieste.find(x => x.id === currentDetailId);
+    if (!r) return;
+    r.eliminata = { ts: new Date().toISOString(), operatore: currentUser, motivazione };
+    await saveEliminata(r);
+    await deleteRichiesta(r.id);
+    closeModal('elimina-modal');
+  }
+
+  // ── STORICO ──
+  window.openStorico = function() {
+    const body = document.getElementById('storico-body');
+    if (eliminate.length === 0) {
+      body.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🗂</div><div class="empty-state-title">Nessuna richiesta eliminata</div></div>';
+    } else {
+      body.innerHTML = [...eliminate].reverse().map(r => `
+        <div class="storico-item">
+          <div class="storico-item-header">
+            <span class="storico-item-title">${r.cliente} <span style="font-family:monospace;font-size:12px;color:var(--text-muted)">${r.id}</span></span>
+            <span class="storico-item-meta">Eliminata il ${formatDate(r.eliminata.ts)}</span>
+          </div>
+          <div class="storico-item-body">
+            <span>📋 ${r.tipo||'—'}</span><span>⚡ ${r.fornitore||'—'}</span>
+            <span>👤 ${r.operatore||'—'}</span><span>📅 Aperta: ${formatDate(r.dataApertura)}</span>
+            ${r.cf?`<span>🪪 ${r.cf}</span>`:''}${r.pod?`<span>⚙️ ${r.pod}</span>`:''}
+          </div>
+          <div class="storico-item-motivo">Motivazione: ${r.eliminata.motivazione} — da ${r.eliminata.operatore}</div>
+        </div>`).join('');
+    }
+    openModal('storico-modal');
+  }
+</script>
+
+
+</body></html>
